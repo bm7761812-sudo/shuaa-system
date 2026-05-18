@@ -1,0 +1,143 @@
+import streamlit as st
+import pandas as pd
+from datetime import datetime
+
+# 1. إعدادات الصفحة الأساسية لتشبه الأنظمة المكتبية الكبرى
+st.set_page_config(page_title="نظام شعاع المحاسبي المتكامل", layout="wide", initial_sidebar_state="collapsed")
+
+# 2. حقن كود CSS المطور لتنسيق الأزرار والقوائم بنفس طابع الـ ERP والألوان المطلوبة
+st.markdown("""
+    <style>
+    body, .main, .block-container {
+        direction: rtl;
+        text-align: right;
+        background-color: #f8fafc;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    div[data-testid="stHorizontalBlock"] {
+        direction: rtl !important;
+    }
+    .erp-main-btn {
+        background-color: #e2e8f0;
+        color: #0f172a;
+        padding: 8px 12px;
+        text-align: center;
+        border-radius: 4px;
+        font-weight: bold;
+        border: 1px solid #cbd5e1;
+        margin: 2px;
+        font-size: 13px;
+    }
+    .header-box {
+        background-color: #3b82f6;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        font-weight: bold;
+    }
+    .metric-card {
+        background-color: white;
+        padding: 15px;
+        border-radius: 6px;
+        border-right: 5px solid #3b82f6;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# 3. تهيئة قاعدة البيانات الداخلية للنظام (Session State) لربط الشاشات
+if 'items_df' not in st.session_state:
+    st.session_state.items_df = pd.DataFrame([
+        {"رمز الصنف": "1001", "اسم الصنف": "لابتوب توشيبا ستالايت 1450", "الوحدة": "حبة", "المخزون الحالي": 45, "سعر البيع": 1500.0},
+        {"رمز الصنف": "1002", "اسم الصنف": "لابتوب ايسر موديل 4500", "الوحدة": "حبة", "المخزون الحالي": 18, "سعر البيع": 1200.0}
+    ])
+
+if 'customers_df' not in st.session_state:
+    st.session_state.customers_df = pd.DataFrame([
+        {"رقم العميل": 1, "اسم العميل": "مؤسسة بوصلة التقنية", "الهاتف": "777123456", "العنوان": "صنعاء", "الرصيد": 0.0}
+    ])
+
+if 'invoices' not in st.session_state:
+    st.session_state.invoices = []
+
+# 4. شريط ترويسة النظام الثابتة
+st.markdown("""
+    <div style='background-color: #1e3a8a; padding: 12px; border-radius: 4px; margin-bottom: 10px;'>
+        <h3 style='color: white; margin: 0; display: inline-block;'>نظام شعاع المحاسبي المتكامل</h3>
+        <span style='color: #93c5fd; float: left;'>مؤسسة بوصلة التقنية - الفرع الرئيسي</span>
+    </div>
+""", unsafe_allow_html=True)
+
+# 5. شريط محاكاة النظام الثابت بالرمادي الفاتح
+col_m1, col_m2, col_m3, col_m4, col_m5, col_m6 = st.columns(6)
+col_m1.markdown("<div class='erp-main-btn'>⚙️ النظام</div>", unsafe_allow_html=True)
+col_m2.markdown("<div class='erp-main-btn'>📊 الأستاذ العام</div>", unsafe_allow_html=True)
+col_m3.markdown("<div class='erp-main-btn'>📦 المخازن</div>", unsafe_allow_html=True)
+col_m4.markdown("<div class='erp-main-btn'>📈 المبيعات</div>", unsafe_allow_html=True)
+col_m5.markdown("<div class='erp-main-btn'>🏪 نقاط البيع</div>", unsafe_allow_html=True)
+col_m6.markdown("<div class='erp-main-btn'>👥 الموارد البشرية</div>", unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# 6. اختيار الشاشة الحالية
+current_tab = st.radio(
+    "اختر الشاشة التي تريد العمل عليها حالياً:",
+    ["🏠 الصفحة الرئيسية", "📦 اصناف مخزنية", "📥 الاستلام المخزني", "👥 تعريف عميل", "📄 فاتورة مبيعات"],
+    horizontal=True
+)
+
+st.markdown("---")
+
+if current_tab == "🏠 الصفحة الرئيسية":
+    st.subheader("🏠 لوحة التحكم والمراقبة السريعة")
+    col_d1, col_d2, col_d3 = st.columns(3)
+    with col_d1: st.markdown(f"<div class='metric-card'><h4>📦 عدد الأصناف</h4><h2>{len(st.session_state.items_df)}</h2></div>", unsafe_allow_html=True)
+    with col_d2: st.markdown(f"<div class='metric-card'><h4>👥 إجمالي العملاء</h4><h2>{len(st.session_state.customers_df)}</h2></div>", unsafe_allow_html=True)
+    with col_d3: st.markdown(f"<div class='metric-card'><h4>🧾 الفواتير الصادرة</h4><h2>{len(st.session_state.invoices)}</h2></div>", unsafe_allow_html=True)
+
+elif current_tab == "📦 اصناف مخزنية":
+    st.markdown("<div class='header-box'>📦 دليل الأصناف والتحكم بالمخزون</div>", unsafe_allow_html=True)
+    st.dataframe(st.session_state.items_df, use_container_width=True)
+
+elif current_tab == "📥 الاستلام المخزني":
+    st.markdown("<div class='header-box'>📥 حركة إدخال واستلام مخزني</div>", unsafe_allow_html=True)
+    col_in1, col_in2, col_in3 = st.columns(3)
+    selected_item = col_in1.selectbox("اختر الصنف", st.session_state.items_df["اسم الصنف"])
+    qty_in = col_in2.number_input("الكمية الواردة", min_value=1, value=10)
+    if col_in3.button("📥 تأكيد الاستلام"):
+        st.session_state.items_df.loc[st.session_state.items_df["اسم الصنف"] == selected_item, "المخزون الحالي"] += qty_in
+        st.success("تم التوريد بنجاح!")
+
+elif current_tab == "👥 تعريف عميل":
+    st.markdown("<div class='header-box'>👥 فتح ملف وتكويد عميل جديد</div>", unsafe_allow_html=True)
+    with st.form("cust_form"):
+        cust_name = st.text_input("اسم العميل الكامل")
+        if st.form_submit_button("💾 حفظ العميل"):
+            new_cust = {"رقم العميل": len(st.session_state.customers_df)+1, "اسم العميل": cust_name, "الهاتف": "", "العنوان": "", "الرصيد": 0.0}
+            st.session_state.customers_df = pd.concat([st.session_state.customers_df, pd.DataFrame([new_cust])], ignore_index=True)
+            st.success("تم الحفظ!")
+            st.rerun()
+    st.dataframe(st.session_state.customers_df, use_container_width=True)
+
+elif current_tab == "📄 فاتورة مبيعات":
+    st.markdown("<div style='background-color: #00ffff; padding: 8px; border-radius: 4px; text-align: center; color: black; font-weight: bold; border: 2px solid #1e3a8a;'>📄 شاشة إصدار فاتورة مبيعات إلكترونية</div>", unsafe_allow_html=True)
+    
+    col_f1, col_f2 = st.columns(2)
+    with col_f1:
+        st.text_input("رقم الفاتورة", value=f"INV-{len(st.session_state.invoices)+1:04d}", disabled=True)
+        active_customer = st.selectbox("اسم العميل", st.session_state.customers_df["اسم العميل"])
+    with col_f2:
+        currency = st.selectbox("العملة", ["ريال يمني", "ريال سعودي", "دولار أمريكي"])
+    
+    st.markdown("---")
+    col_h1, col_h2, col_h3 = st.columns([3, 1, 2])
+    selected_i1 = col_h1.selectbox("الصنف", st.session_state.items_df["اسم الصنف"])
+    price_i1 = st.session_state.items_df.loc[st.session_state.items_df["اسم الصنف"] == selected_i1, "سعر البيع"].values[0]
+    qty_i1 = col_h2.number_input("الكمية", min_value=1, value=1)
+    tot_i1 = qty_i1 * price_i1
+    col_h3.text_input("الإجمالي", value=f"{tot_i1:,.2f} {currency}", disabled=True)
+    
+    if st.button("💾 حفظ وترحيل الفاتورة"):
+        st.session_state.invoices.append({"عميل": active_customer, "صافي": tot_i1})
+        st.success("تم ترحيل الفاتورة بنجاح وحفظها في الدفاتر الحسابية!")
